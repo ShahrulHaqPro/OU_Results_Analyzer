@@ -47,8 +47,6 @@ export interface AcademicSummary {
   totalWeightedPoints: number;
   totalCreditsPassed: number;
   agpaByLevel: Record<string, number>;
-  level2Agpa: number;
-  level2Credits: number;
   creditsByLevel: Record<string, number>;
   creditsByCategory: Record<string, number>;
   validRows: number;

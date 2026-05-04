@@ -168,20 +168,11 @@ const Dashboard = ({ result }: DashboardProps) => {
 
   return (
     <section className="space-y-5 sm:space-y-6">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
           <p className="text-sm text-slate-500">Total AGPA</p>
           <p className="mt-2 text-2xl font-bold text-brand-700 sm:text-3xl">
             {result.summary.totalAGPA.toFixed(3)}
-          </p>
-        </div>
-        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
-          <p className="text-sm text-slate-500">Level 2 AGPA</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
-            {result.summary.level2Agpa.toFixed(3)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {result.summary.level2Credits} credits
           </p>
         </div>
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">

@@ -200,15 +200,11 @@ export const analyzeAcademicRows = (
       course.parsedCode && course.countsTowardGpa && course.gradePoint !== null
   );
 
-  // Exclude Level 2 from total AGPA calculation
-  const nonLevel2Courses = validCourses.filter(
-    (course) => course.parsedCode?.level !== "2"
-  );
-  const totalCreditsPassed = nonLevel2Courses.reduce(
+  const totalCreditsPassed = validCourses.reduce(
     (sum, course) => sum + course.credits,
     0
   );
-  const totalWeightedPoints = nonLevel2Courses.reduce(
+  const totalWeightedPoints = validCourses.reduce(
     (sum, course) => sum + course.weightedPoints,
     0
   );
@@ -237,22 +233,6 @@ export const analyzeAcademicRows = (
     return acc;
   }, {});
 
-  // Calculate Level 2 GPA separately
-  const level2Courses = validCourses.filter(
-    (course) => course.parsedCode?.level === "2"
-  );
-  const level2Credits = level2Courses.reduce(
-    (sum, course) => sum + course.credits,
-    0
-  );
-  const level2WeightedPoints = level2Courses.reduce(
-    (sum, course) => sum + course.weightedPoints,
-    0
-  );
-  const level2Agpa = level2Credits
-    ? round(level2WeightedPoints / level2Credits, 3)
-    : 0;
-
   const summary: AcademicSummary = {
     totalAGPA: totalCreditsPassed
       ? round(totalWeightedPoints / totalCreditsPassed, 3)
@@ -260,8 +240,6 @@ export const analyzeAcademicRows = (
     totalWeightedPoints: round(totalWeightedPoints, 3),
     totalCreditsPassed: round(totalCreditsPassed, 2),
     agpaByLevel,
-    level2Agpa,
-    level2Credits: round(level2Credits, 2),
     creditsByLevel,
     creditsByCategory,
     validRows: validCourses.length,
