@@ -41,6 +41,8 @@ const Dashboard = ({ result }: DashboardProps) => {
     grade: "ALL",
   };
   const [filters, setFilters] = useState<CourseFilters>(defaultFilters);
+  const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
+  const [customAgpa, setCustomAgpa] = useState<number | null>(null);
 
   const agpaByLevelEntries = Object.entries(result.summary.agpaByLevel).sort(
     ([a], [b]) => a.localeCompare(b)
@@ -119,6 +121,50 @@ const Dashboard = ({ result }: DashboardProps) => {
       }),
     [result.analyzedCourses, filters]
   );
+
+  const toggleCourseSelection = (courseId: string) => {
+    const newSelected = new Set(selectedCourses);
+    if (newSelected.has(courseId)) {
+      newSelected.delete(courseId);
+    } else {
+      newSelected.add(courseId);
+    }
+    setSelectedCourses(newSelected);
+  };
+
+  const calculateCustomAgpa = () => {
+    const selectedCoursesData = result.analyzedCourses.filter((course) => {
+      const courseId = `${course.rowNumber}-${course.courseCode}`;
+      return selectedCourses.has(courseId);
+    });
+
+    if (selectedCoursesData.length === 0) {
+      setCustomAgpa(null);
+      return;
+    }
+
+    // Filter for courses that count towards GPA
+    const validCourses = selectedCoursesData.filter(
+      (course) => course.countsTowardGpa && course.gradePoint !== null
+    );
+
+    if (validCourses.length === 0) {
+      setCustomAgpa(null);
+      return;
+    }
+
+    const totalCredits = validCourses.reduce(
+      (sum, course) => sum + course.credits,
+      0
+    );
+    const totalWeightedPoints = validCourses.reduce(
+      (sum, course) => sum + course.weightedPoints,
+      0
+    );
+
+    const agpa = totalCredits > 0 ? totalWeightedPoints / totalCredits : 0;
+    setCustomAgpa(Math.round(agpa * 1000) / 1000);
+  };
 
   return (
     <section className="space-y-5 sm:space-y-6">
@@ -395,6 +441,13 @@ const Dashboard = ({ result }: DashboardProps) => {
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50 text-left text-slate-600">
               <tr>
+                <th className="px-3 py-2 font-medium">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all courses"
+                    className="rounded border-slate-300"
+                  />
+                </th>
                 <th className="px-3 py-2 font-medium">Code</th>
                 <th className="px-3 py-2 font-medium">Course</th>
                 <th className="px-3 py-2 font-medium">Cat</th>
@@ -405,24 +458,64 @@ const Dashboard = ({ result }: DashboardProps) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {filteredCourses.map((course) => (
-                <tr key={`${course.rowNumber}-${course.courseCode}`}>
-                  <td className="px-3 py-2">{course.courseCode}</td>
-                  <td className="px-3 py-2">{course.courseName}</td>
-                  <td className="px-3 py-2">
-                    {course.parsedCode?.category ?? "-"}
-                  </td>
-                  <td className="px-3 py-2">
-                    {course.parsedCode?.level ?? "-"}
-                  </td>
-                  <td className="px-3 py-2">{course.normalizedGrade ?? "-"}</td>
-                  <td className="px-3 py-2">{course.credits}</td>
-                  <td className="px-3 py-2">{course.resultLabel}</td>
-                </tr>
-              ))}
+              {filteredCourses.map((course) => {
+                const courseId = `${course.rowNumber}-${course.courseCode}`;
+                const isSelected = selectedCourses.has(courseId);
+                return (
+                  <tr key={courseId}>
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleCourseSelection(courseId)}
+                        className="rounded border-slate-300"
+                      />
+                    </td>
+                    <td className="px-3 py-2">{course.courseCode}</td>
+                    <td className="px-3 py-2">{course.courseName}</td>
+                    <td className="px-3 py-2">
+                      {course.parsedCode?.category ?? "-"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {course.parsedCode?.level ?? "-"}
+                    </td>
+                    <td className="px-3 py-2">{course.normalizedGrade ?? "-"}</td>
+                    <td className="px-3 py-2">{course.credits}</td>
+                    <td className="px-3 py-2">{course.resultLabel}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
+
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={calculateCustomAgpa}
+            className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            Check Custom AGPA
+          </button>
+          {selectedCourses.size > 0 && (
+            <button
+              onClick={() => setSelectedCourses(new Set())}
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Clear Selection
+            </button>
+          )}
+        </div>
+
+        {customAgpa !== null && (
+          <div className="mt-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-5">
+            <p className="text-sm font-medium text-slate-600">
+              Custom AGPA ({selectedCourses.size} course{selectedCourses.size !== 1 ? "s" : ""} selected)
+            </p>
+            <p className="mt-2 text-3xl font-bold text-brand-700">
+              {customAgpa.toFixed(3)}
+            </p>
+          </div>
+        )}
       </div>
 
       {result.issues.length > 0 ? (
