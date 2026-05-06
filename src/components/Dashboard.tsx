@@ -53,6 +53,19 @@ const Dashboard = ({ result }: DashboardProps) => {
   const creditsByCategoryEntries = Object.entries(
     result.summary.creditsByCategory
   ).sort(([a], [b]) => a.localeCompare(b));
+  
+  const combinedLevelKeys = Array.from(
+    new Set([
+      ...Object.keys(result.summary.creditsByLevel),
+      ...Object.keys(result.summary.creditsTakenByLevel),
+    ])
+  ).sort();
+  const combinedCategoryKeys = Array.from(
+    new Set([
+      ...Object.keys(result.summary.creditsByCategory),
+      ...Object.keys(result.summary.creditsTakenByCategory),
+    ])
+  ).sort();
 
   const levels = useMemo(
     () =>
@@ -166,6 +179,41 @@ const Dashboard = ({ result }: DashboardProps) => {
     setCustomAgpa(Math.round(agpa * 1000) / 1000);
   };
 
+  const getStatusDisplay = (
+    course: AnalyzedCourse
+  ): { label: string; color: string } => {
+    const normalizedStatus = (course.progressStatus ?? "").trim().toUpperCase();
+    const gradePoint = course.gradePoint;
+
+    // If Grade >= C (gradePoint >= 2.0) then "Counted"
+    if (gradePoint !== null && gradePoint >= 2.0) {
+      return { label: "Counted", color: "text-emerald-600" };
+    }
+
+    // If Progress Status is Exempted then "Counted"
+    if (normalizedStatus === "EXEMPTED") {
+      return { label: "Counted", color: "text-emerald-600" };
+    }
+
+    // If Progress Status is Resit then "Resit"
+    if (normalizedStatus === "RESIT") {
+      return { label: "Resit", color: "text-slate-600" };
+    }
+
+    // If Progress Status is Pending then "Result waiting"
+    if (normalizedStatus === "PENDING") {
+      return { label: "Result waiting", color: "text-slate-600" };
+    }
+
+    // If Progress Status is Repeat then "Repeat"
+    if (normalizedStatus === "REPEAT") {
+      return { label: "Repeat", color: "text-slate-600" };
+    }
+
+    // Default to resultLabel with neutral color
+    return { label: course.resultLabel, color: "text-slate-600" };
+  };
+
   return (
     <section className="space-y-5 sm:space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
@@ -252,7 +300,7 @@ const Dashboard = ({ result }: DashboardProps) => {
 
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
           <h3 className="text-base font-semibold text-slate-900">
-            Credits Passed by Level
+            Credits by Level
           </h3>
           <div className="mt-3 h-44 sm:h-52 lg:h-56">
             <Bar
@@ -279,17 +327,25 @@ const Dashboard = ({ result }: DashboardProps) => {
                 <tr>
                   <th className="px-3 py-2 font-medium">Level</th>
                   <th className="px-3 py-2 font-medium">Credits Passed</th>
+                  <th className="px-3 py-2 font-medium">Credits Taken</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
-                {creditsByLevelEntries.map(([level, value]) => (
-                  <tr key={level}>
-                    <td className="px-3 py-2">Level {level}</td>
-                    <td className="px-3 py-2 font-medium text-emerald-600">
-                      {value.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
+                {combinedLevelKeys.map((level) => {
+                  const passed = result.summary.creditsByLevel[level] ?? 0;
+                  const taken = result.summary.creditsTakenByLevel[level] ?? 0;
+                  return (
+                    <tr key={level}>
+                      <td className="px-3 py-2">Level {level}</td>
+                      <td className="px-3 py-2 font-medium text-emerald-600">
+                        {passed.toFixed(2)}
+                      </td>
+                      <td className="px-3 py-2 font-medium text-slate-900">
+                        {taken.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -297,7 +353,7 @@ const Dashboard = ({ result }: DashboardProps) => {
 
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:col-span-2">
           <h3 className="text-base font-semibold text-slate-900">
-            Credits Passed by Category
+            Credits by Category
           </h3>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
             <div className="mx-auto mt-3 max-w-xs sm:max-w-sm lg:max-w-md">
@@ -329,17 +385,25 @@ const Dashboard = ({ result }: DashboardProps) => {
                   <tr>
                     <th className="px-3 py-2 font-medium">Category</th>
                     <th className="px-3 py-2 font-medium">Credits Passed</th>
+                    <th className="px-3 py-2 font-medium">Credits Taken</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
-                  {creditsByCategoryEntries.map(([category, value]) => (
-                    <tr key={category}>
-                      <td className="px-3 py-2">{category}</td>
-                      <td className="px-3 py-2 font-medium text-slate-900">
-                        {value.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
+                  {combinedCategoryKeys.map((category) => {
+                    const passed = result.summary.creditsByCategory[category] ?? 0;
+                    const taken = result.summary.creditsTakenByCategory[category] ?? 0;
+                    return (
+                      <tr key={category}>
+                        <td className="px-3 py-2">{category}</td>
+                        <td className="px-3 py-2 font-medium text-slate-900">
+                          {passed.toFixed(2)}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-slate-900">
+                          {taken.toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -452,6 +516,7 @@ const Dashboard = ({ result }: DashboardProps) => {
               {filteredCourses.map((course) => {
                 const courseId = `${course.rowNumber}-${course.courseCode}`;
                 const isSelected = selectedCourses.has(courseId);
+                const statusDisplay = getStatusDisplay(course);
                 return (
                   <tr key={courseId}>
                     <td className="px-3 py-2">
@@ -472,7 +537,9 @@ const Dashboard = ({ result }: DashboardProps) => {
                     </td>
                     <td className="px-3 py-2">{course.normalizedGrade ?? "-"}</td>
                     <td className="px-3 py-2">{course.credits}</td>
-                    <td className="px-3 py-2">{course.resultLabel}</td>
+                    <td className={`px-3 py-2 font-medium ${statusDisplay.color}`}>
+                      {statusDisplay.label}
+                    </td>
                   </tr>
                 );
               })}

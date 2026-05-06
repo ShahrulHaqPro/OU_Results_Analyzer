@@ -49,6 +49,8 @@ export interface AcademicSummary {
   agpaByLevel: Record<string, number>;
   creditsByLevel: Record<string, number>;
   creditsByCategory: Record<string, number>;
+  creditsTakenByLevel: Record<string, number>;
+  creditsTakenByCategory: Record<string, number>;
   validRows: number;
   invalidRows: number;
 }

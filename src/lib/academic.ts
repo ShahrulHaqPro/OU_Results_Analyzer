@@ -212,6 +212,14 @@ export const analyzeAcademicRows = (
   const creditsByLevel: Record<string, number> = {};
   const weightedByLevel: Record<string, number> = {};
   const creditsByCategory: Record<string, number> = {};
+  const creditsTakenByLevel: Record<string, number> = {};
+  const creditsTakenByCategory: Record<string, number> = {};
+
+  // All courses are taken credits except those with "REPEAT" status
+  const takenCourses = analyzedCourses.filter((course) => {
+    const normalizedStatus = (course.progressStatus ?? "").trim().toUpperCase();
+    return normalizedStatus !== "REPEAT" && course.parsedCode;
+  });
 
   validCourses.forEach((course) => {
     const level = course.parsedCode!.level;
@@ -222,6 +230,16 @@ export const analyzeAcademicRows = (
       (weightedByLevel[level] ?? 0) + course.weightedPoints;
     creditsByCategory[category] =
       (creditsByCategory[category] ?? 0) + course.credits;
+  });
+
+  takenCourses.forEach((course) => {
+    const level = course.parsedCode!.level;
+    const category = course.parsedCode!.category;
+
+    creditsTakenByLevel[level] =
+      (creditsTakenByLevel[level] ?? 0) + course.credits;
+    creditsTakenByCategory[category] =
+      (creditsTakenByCategory[category] ?? 0) + course.credits;
   });
 
   const agpaByLevel = Object.keys(creditsByLevel).reduce<
@@ -242,6 +260,8 @@ export const analyzeAcademicRows = (
     agpaByLevel,
     creditsByLevel,
     creditsByCategory,
+    creditsTakenByLevel,
+    creditsTakenByCategory,
     validRows: validCourses.length,
     invalidRows: analyzedCourses.length - validCourses.length,
   };
