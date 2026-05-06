@@ -91,6 +91,16 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
+      {/* Header Banner */}
+      <div className="w-full bg-gradient-to-r from-brand-700 to-brand-600">
+        <img
+          src="/src/assets/images/HeaderBanner.png"
+          alt="Academic Performance Analyzer Banner"
+          className="w-full object-cover"
+          style={{ maxHeight: "200px" }}
+        />
+      </div>
+
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="space-y-1">
