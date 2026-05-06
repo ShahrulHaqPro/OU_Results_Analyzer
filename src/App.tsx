@@ -217,7 +217,7 @@ const App = () => {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            {/* <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <h3 className="text-lg font-semibold text-slate-900 sm:text-xl">
                 Result classifications
               </h3>
@@ -242,7 +242,7 @@ const App = () => {
                   Course must be repeated.
                 </li>
               </ul>
-            </div>
+            </div> */}
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <h3 className="text-lg font-semibold text-slate-900 sm:text-xl">
