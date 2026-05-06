@@ -7,22 +7,109 @@ export const exportSummaryToPdf = (result: AnalysisResult): void => {
   const doc = new jsPDF();
   const { summary } = result;
 
+  const takenCourses = result.analyzedCourses.filter((course) => {
+    const normalizedStatus = (course.progressStatus ?? "").trim().toUpperCase();
+    return course.parsedCode && normalizedStatus !== "REPEAT";
+  });
+
+  const passedCourses = result.analyzedCourses.filter(
+    (course) => course.parsedCode && course.countsTowardGpa
+  );
+
+  const levelKeys = Array.from(
+    new Set(
+      result.analyzedCourses.map((course) => course.parsedCode?.level ?? "")
+    )
+  )
+    .filter(Boolean)
+    .sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+
+  const categoryKeys = Array.from(
+    new Set(
+      result.analyzedCourses.map((course) => course.parsedCode?.category ?? "")
+    )
+  )
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+
+  const formatMatrixValue = (value: number): string =>
+    value > 0 ? value.toFixed(2) : "-";
+
+  const getMatrixCredits = (
+    courses: typeof takenCourses,
+    level?: string,
+    category?: string
+  ): number =>
+    courses.reduce((total, course) => {
+      const matchesLevel = level ? course.parsedCode?.level === level : true;
+      const matchesCategory = category
+        ? course.parsedCode?.category === category
+        : true;
+
+      if (matchesLevel && matchesCategory) {
+        return total + course.credits;
+      }
+
+      return total;
+    }, 0);
+
+  const getMatrixRowTotal = (courses: typeof takenCourses, level: string): number =>
+    getMatrixCredits(courses, level);
+
+  const getMatrixColumnTotal = (
+    courses: typeof takenCourses,
+    category: string
+  ): number => getMatrixCredits(courses, undefined, category);
+
+  const getMatrixRows = (courses: typeof takenCourses) => [
+    ...levelKeys.map((level) => [
+      `Level ${level}`,
+      ...categoryKeys.map((category) =>
+        formatMatrixValue(getMatrixCredits(courses, level, category))
+      ),
+      formatMatrixValue(getMatrixRowTotal(courses, level)),
+    ]),
+    [
+      "Total credit each level by category",
+      ...categoryKeys.map((category) =>
+        formatMatrixValue(getMatrixColumnTotal(courses, category))
+      ),
+      formatMatrixValue(courses.reduce((total, course) => total + course.credits, 0)),
+    ],
+  ];
+
   doc.setFontSize(16);
-  doc.text("Academic Performance Analyzer - Summary", 14, 16);
+  doc.text("Academic Performance Analyzer Summary - OU", 14, 16);
 
   doc.setFontSize(11);
   doc.text(`Total AGPA: ${summary.totalAGPA.toFixed(3)}`, 14, 26);
   doc.text(`Total Credits Passed: ${summary.totalCreditsPassed}`, 14, 33);
   doc.text(`Valid Courses Counted: ${summary.validRows}`, 14, 40);
 
+  // doc.setFontSize(12);
+  // doc.text("Taken Credit Matrix", 14, 48);
+
   autoTable(doc, {
-    startY: 48,
-    head: [["Metric", "Details"]],
-    body: [
-      ["AGPA by Level", JSON.stringify(summary.agpaByLevel)],
-      ["Credits by Level", JSON.stringify(summary.creditsByLevel)],
-      ["Credits by Category", JSON.stringify(summary.creditsByCategory)],
-    ],
+    startY: 52,
+    head: [["Taken Credit Matrix", ...categoryKeys.map((category) => `cat ${category}`), "Total credit"]],
+    body: getMatrixRows(takenCourses),
+  });
+
+  // doc.setFontSize(12);
+  // doc.text("Passed Credit Matrix", 14, 68);
+
+  autoTable(doc, {
+    startY: (doc as jsPDF & { lastAutoTable?: { finalY?: number } })
+      .lastAutoTable?.finalY
+      ? ((doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
+          ?.finalY ?? 0) + 12
+      : 110,
+    head: [["Passed Credit Matrix", ...categoryKeys.map((category) => `cat ${category}`), "Total credit"]],
+    body: getMatrixRows(passedCourses).map((row) => [
+      row[0],
+      ...(row.slice(1, -1) as string[]),
+      row[row.length - 1],
+    ]),
   });
 
   autoTable(doc, {
