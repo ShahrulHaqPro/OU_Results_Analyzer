@@ -1,6 +1,7 @@
 import type { ParsedCourseCode } from "./types";
 
-const COURSE_CODE_PATTERN = /^[A-Za-z]{2}[A-Za-z][0-9][0-9][0-9]{2}$/;
+// Format example: CVM5402 -> department(2 letters) + category(1 letter) + level(1 digit) + creditRate(1 digit) + serial(2 alnum)
+const COURSE_CODE_PATTERN = /^[A-Za-z]{2}[A-Za-z][0-9][0-9][A-Za-z0-9]{2}$/;
 
 export const parseCourseCode = (
   courseCode: string
