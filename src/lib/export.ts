@@ -70,7 +70,7 @@ export const exportSummaryToPdf = (result: AnalysisResult): void => {
       formatMatrixValue(getMatrixRowTotal(courses, level)),
     ]),
     [
-      "Total credit each level by category",
+      "Total credit",
       ...categoryKeys.map((category) =>
         formatMatrixValue(getMatrixColumnTotal(courses, category))
       ),
@@ -93,6 +93,15 @@ export const exportSummaryToPdf = (result: AnalysisResult): void => {
     startY: 52,
     head: [["Taken Credit Matrix", ...categoryKeys.map((category) => `cat ${category}`), "Total credit"]],
     body: getMatrixRows(takenCourses),
+    theme: "grid",
+    styles: {
+      lineWidth: 0.1,
+      lineColor: 180,
+    },
+    headStyles: {
+      fillColor: [59, 130, 246],
+      textColor: 255,
+    },
   });
 
   // doc.setFontSize(12);
@@ -110,6 +119,15 @@ export const exportSummaryToPdf = (result: AnalysisResult): void => {
       ...(row.slice(1, -1) as string[]),
       row[row.length - 1],
     ]),
+    theme: "grid",
+    styles: {
+      lineWidth: 0.1,
+      lineColor: 180,
+    },
+    headStyles: {
+      fillColor: [16, 185, 129],
+      textColor: 255,
+    },
   });
 
   autoTable(doc, {
@@ -138,6 +156,15 @@ export const exportSummaryToPdf = (result: AnalysisResult): void => {
       course.credits,
       course.isPassed ? "Yes" : "No",
     ]),
+    theme: "grid",
+    styles: {
+      lineWidth: 0.1,
+      lineColor: 180,
+    },
+    headStyles: {
+      fillColor: [15, 23, 42],
+      textColor: 255,
+    },
   });
 
   doc.save("academic-performance-summary.pdf");
