@@ -202,7 +202,7 @@ const Dashboard = ({ result }: DashboardProps) => {
 
     // If Progress Status is Pending then "Result waiting"
     if (normalizedStatus === "PENDING") {
-      return { label: "Result waiting", color: "text-slate-600" };
+      return { label: "Get Eligible", color: "text-slate-600" };
     }
 
     // If Progress Status is Repeat then "Repeat"
