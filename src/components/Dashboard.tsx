@@ -216,7 +216,7 @@ const Dashboard = ({ result }: DashboardProps) => {
 
   return (
     <section className="space-y-5 sm:space-y-6">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
           <p className="text-sm text-slate-500">Total AGPA</p>
           <p className="mt-2 text-2xl font-bold text-brand-700 sm:text-3xl">
@@ -227,6 +227,12 @@ const Dashboard = ({ result }: DashboardProps) => {
           <p className="text-sm text-slate-500">Credits Passed</p>
           <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
             {result.summary.totalCreditsPassed}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+          <p className="text-sm text-slate-500">Total Credit Taken</p>
+          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
+            {Object.values(result.summary.creditsTakenByLevel).reduce((sum, val) => sum + val, 0).toFixed(2)}
           </p>
         </div>
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">

@@ -144,7 +144,7 @@ export const analyzeAcademicRows = (
         rowNumber: row.rowNumber,
         field: "Grade",
         message: isSpecialCode
-          ? `Grade \"${gradeForCalculation}\" recognized as special code: P (Pass, no credit), RX/FA (Repeat), E (Fail).`
+          ? `Grade \"${gradeForCalculation}\" => { P (Pass, no credit), RX (Resit), FA (Repeat), E (Fail)}`
           : `Unsupported grade \"${gradeForCalculation}\". Update grade scale or fix input value.`,
         severity: isSpecialCode ? "warning" : "error",
       });
